@@ -13,6 +13,30 @@ return new class extends Migration
     {
         Schema::create('saving_goals', function (Blueprint $table) {
             $table->id();
+
+            $table->foreignId('user_id')
+                  ->constrained()
+                  ->onDelete('cascade');
+
+            $table->string('title');
+
+            $table->text('description')->nullable();
+
+$table->decimal('target_amount', 10, 2);
+
+            $table->decimal('current_amount', 10, 2)
+                  ->default(0);
+
+            $table->date('target_date')->nullable();
+
+            $table->enum('priority', [
+                'high',
+                'medium',
+                'low'
+            ])->default('medium');
+
+        $table->string('emoji')->nullable();
+
             $table->timestamps();
         });
     }
