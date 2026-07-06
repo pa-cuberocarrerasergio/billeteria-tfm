@@ -12,3 +12,18 @@ Content-Type: application/json
     "amount": 15.50,
     "transaction_date": "2026-07-06"
 }
+###
+GET http://127.0.0.1:8000/api/transactions/1
+###
+PUT http://127.0.0.1:8000/api/transactions/1
+Content-Type: application/json
+
+{
+  "category_id": 1,
+  "type": "expense",
+  "title": "Hamburguesa actualizada",
+  "amount": 20,
+  "transaction_date": "2026-07-06"
+}
+###
+DELETE http://127.0.0.1:8000/api/transactions/1
