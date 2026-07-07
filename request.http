@@ -27,3 +27,39 @@ Content-Type: application/json
 }
 ###
 DELETE http://127.0.0.1:8000/api/transactions/1
+
+###
+GET http://127.0.0.1:8000/api/saving-goals
+
+###
+POST http://127.0.0.1:8000/api/saving-goals
+Content-Type: application/json
+
+{
+  "user_id": 1,
+  "title": "Viaje a Japón",
+  "description": "Ahorro para viajar a Tokio",
+  "target_amount": 5000,
+  "current_amount": 500,
+  "target_date": "2027-06-01",
+  "priority": "high",
+  "emoji": "🇯🇵"
+}
+
+###
+GET http://127.0.0.1:8000/api/saving-goals/1
+
+###
+PUT http://127.0.0.1:8000/api/saving-goals/1
+Content-Type: application/json
+
+{
+  "title": "Viaje a Japón 2027",
+  "target_amount": 6000,
+  "current_amount": 1000,
+  "target_date": "2027-06-01",
+  "priority": "high"
+}
+
+###
+DELETE http://127.0.0.1:8000/api/saving-goals/1
