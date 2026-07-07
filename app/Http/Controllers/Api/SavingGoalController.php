@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\SavingGoal;
 use Illuminate\Http\Request;
+use App\Models\Achievement;
 
 class SavingGoalController extends Controller
 {
@@ -34,6 +35,14 @@ class SavingGoalController extends Controller
         ]);
 
         $goal = SavingGoal::create($validated);
+        $achievement = Achievement::find(2);
+
+        if (
+            $achievement &&
+            !$goal->user->achievements()->where('achievement_id', 2)->exists()
+        ) {
+            $goal->user->achievements()->attach(2);
+        }
 
         return response()->json($goal, 201);
     }

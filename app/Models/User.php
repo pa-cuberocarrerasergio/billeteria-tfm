@@ -64,8 +64,6 @@ class User extends Authenticatable
 
     public function achievements()
     {
-    return $this->belongsToMany(Achievement::class)
-                ->withPivot('unlocked_at')
-                ->withTimestamps();
-}
+        return $this->belongsToMany(Achievement::class);
+    }
 }

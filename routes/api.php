@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\SavingGoalController;
 use App\Http\Controllers\Api\CoachPreferenceController;
+use App\Http\Controllers\Api\AchievementController;
 
 
 ### Categories ###
@@ -28,3 +29,7 @@ Route::delete('/saving-goals/{savingGoal}', [SavingGoalController::class, 'destr
 
 Route::get('/coach-preferences/{user}', [CoachPreferenceController::class, 'show']);
 Route::put('/coach-preferences/{user}', [CoachPreferenceController::class, 'update']);
+
+### Achievements ###
+Route::get('/achievements', [AchievementController::class, 'index']);
+Route::get('/users/{user}/achievements', [AchievementController::class, 'userAchievements']);

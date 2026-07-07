@@ -75,3 +75,10 @@ Content-Type: application/json
 
 ###
 GET http://127.0.0.1:8000/api/coach-preferences/1
+
+###
+GET http://127.0.0.1:8000/api/achievements
+
+###
+GET http://127.0.0.1:8000/api/users/1/achievements
+

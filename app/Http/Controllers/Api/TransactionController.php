@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
+use App\Models\Achievement;
 
 class TransactionController extends Controller
 {
@@ -24,8 +25,15 @@ class TransactionController extends Controller
             'amount' => 'required|numeric|min:0.01',
             'transaction_date' => 'required|date',
         ]);
-        $transaction = Transaction::create($validated);
 
+        $transaction = Transaction::create($validated);
+        $achievement = Achievement::find(1);
+        if (
+            $achievement &&
+            !$transaction->user->achievements()->where('achievement_id', 1)->exists()
+        ) {
+            $transaction->user->achievements()->attach(1);
+        }
         return response()->json($transaction, 201);
     }
     public function show(Transaction $transaction)
