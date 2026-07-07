@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\SavingGoalController;
+use App\Http\Controllers\Api\CoachPreferenceController;
 
 
 ### Categories ###
@@ -22,3 +23,8 @@ Route::post('/saving-goals', [SavingGoalController::class, 'store']);
 Route::get('/saving-goals/{savingGoal}', [SavingGoalController::class, 'show']);
 Route::put('/saving-goals/{savingGoal}', [SavingGoalController::class, 'update']);
 Route::delete('/saving-goals/{savingGoal}', [SavingGoalController::class, 'destroy']);
+
+### Coach Preferences ###
+
+Route::get('/coach-preferences/{user}', [CoachPreferenceController::class, 'show']);
+Route::put('/coach-preferences/{user}', [CoachPreferenceController::class, 'update']);
