@@ -82,3 +82,21 @@ GET http://127.0.0.1:8000/api/achievements
 ###
 GET http://127.0.0.1:8000/api/users/1/achievements
 
+###
+POST http://127.0.0.1:8000/api/register
+Content-Type: application/json
+
+{
+  "nickname": "Sergio",
+  "email": "sergio@example.com",
+  "password": "Admin1234"
+}
+
+###
+GET http://127.0.0.1:8000/api/user
+Authorization: Bearer 1|ZSFg6tpD1UzDibqsqeEDDx6TEb0bx056CboUxBmif12e632e
+Accept: application/json
+
+###
+POST http://127.0.0.1:8000/api/logout
+Authorization: Bearer 1|ZSFg6tpD1UzDibqsqeEDDx6TEb0bx056CboUxBmif12e632e

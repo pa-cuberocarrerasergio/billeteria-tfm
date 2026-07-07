@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\SavingGoalController;
 use App\Http\Controllers\Api\CoachPreferenceController;
 use App\Http\Controllers\Api\AchievementController;
+use App\Http\Controllers\Api\AuthController;
 
 
 ### Categories ###
@@ -33,3 +34,13 @@ Route::put('/coach-preferences/{user}', [CoachPreferenceController::class, 'upda
 ### Achievements ###
 Route::get('/achievements', [AchievementController::class, 'index']);
 Route::get('/users/{user}/achievements', [AchievementController::class, 'userAchievements']);
+
+### Auth ###
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+Route::middleware('auth:sanctum')->group(function () {
+
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/user', [AuthController::class, 'me']);
+
+});
