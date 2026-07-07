@@ -18,7 +18,7 @@ class TransactionController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
+            
             'category_id' => 'required|exists:categories,id',
             'type' => 'required|in:income,expense',
             'title' => 'required|string|max:255',
@@ -26,7 +26,9 @@ class TransactionController extends Controller
             'transaction_date' => 'required|date',
         ]);
 
-        $transaction = Transaction::create($validated);
+        $user = $request->user();
+
+        $transaction = $user->transactions()->create($validated);
         $achievement = Achievement::find(1);
         if (
             $achievement &&

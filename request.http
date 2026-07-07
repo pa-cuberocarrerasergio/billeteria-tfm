@@ -100,3 +100,28 @@ Accept: application/json
 ###
 POST http://127.0.0.1:8000/api/logout
 Authorization: Bearer 1|ZSFg6tpD1UzDibqsqeEDDx6TEb0bx056CboUxBmif12e632e
+
+###
+POST http://127.0.0.1:8000/api/transactions
+Authorization: Bearer 2|YmIYTMfKYfE0G6H9tbsXP8WLvmzEafbiWEzDobIEd6cf0bdf
+Accept: application/json
+Content-Type: application/json
+
+{
+  "category_id": 1,
+  "type": "expense",
+  "title": "Café",
+  "description": "Café de la tarde",
+  "amount": 2.50,
+  "transaction_date": "2026-07-07"
+}
+
+###
+POST http://127.0.0.1:8000/api/login
+Accept: application/json
+Content-Type: application/json
+
+{
+  "email": "sergio@example.com",
+  "password": "Admin1234"
+}

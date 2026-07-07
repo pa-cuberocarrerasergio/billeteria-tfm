@@ -14,10 +14,13 @@ Route::get('/categories', [CategoryController::class, 'index']);
 
 ### Transactions ###
 Route::get('/transactions', [TransactionController::class, 'index']);
-Route::post('/transactions', [TransactionController::class, 'store']);
-Route::get('/transactions/{transaction}', [TransactionController::class, 'show']);
+Route::middleware('auth:sanctum')->group(function () { 
+    Route::post('/transactions', [TransactionController::class, 'store']);
+    Route::get('/transactions/{transaction}', [TransactionController::class, 'show']);
 Route::put('/transactions/{transaction}', [TransactionController::class, 'update']);
 Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy']);
+});
+
 
 ### Saving Goals ###
 Route::get('/saving-goals', [SavingGoalController::class, 'index']);
