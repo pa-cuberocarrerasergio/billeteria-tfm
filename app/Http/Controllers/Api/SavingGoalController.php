@@ -24,7 +24,6 @@ class SavingGoalController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'target_amount' => 'required|numeric|min:0.01',
@@ -34,15 +33,18 @@ class SavingGoalController extends Controller
             'emoji' => 'nullable|string|max:10',
         ]);
 
-        $goal = SavingGoal::create($validated);
+        $user = $request->user();
+
+        $goal = $user->savingGoals()->create($validated);
         $achievement = Achievement::find(2);
 
         if (
-            $achievement &&
-            !$goal->user->achievements()->where('achievement_id', 2)->exists()
-        ) {
-            $goal->user->achievements()->attach(2);
-        }
+    $achievement &&
+        !$goal->user->achievements()->where('achievement_id', 2)->exists()
+    )
+    {
+        $goal->user->achievements()->attach(2);
+    }
 
         return response()->json($goal, 201);
     }

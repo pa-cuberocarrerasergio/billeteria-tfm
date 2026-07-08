@@ -125,3 +125,19 @@ Content-Type: application/json
   "email": "sergio@example.com",
   "password": "Admin1234"
 }
+
+###
+POST http://127.0.0.1:8000/api/saving-goals
+Authorization: Bearer 2|YmIYTMfKYfE0G6H9tbsXP8WLvmzEafbiWEzDobIEd6cf0bdf
+Accept: application/json
+Content-Type: application/json
+
+{
+  "title": "Viaje a Japón",
+  "description": "Viaje en 2027",
+  "target_amount": 5000,
+  "current_amount": 0,
+  "target_date": "2027-06-01",
+  "priority": "high",
+  "emoji": "🇯🇵"
+}
