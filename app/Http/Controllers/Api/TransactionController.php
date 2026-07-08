@@ -9,10 +9,13 @@ use App\Models\Achievement;
 
 class TransactionController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         return response()->json(
-            Transaction::with('category')->get()
+            $request->user()
+                ->transactions()
+                ->with('category')
+                ->get()
         );
     }
     public function store(Request $request)
@@ -38,8 +41,13 @@ class TransactionController extends Controller
         }
         return response()->json($transaction, 201);
     }
-    public function show(Transaction $transaction)
+
+    public function show(Request $request, Transaction $transaction)
     {
+        if ($transaction->user_id !== $request->user()->id) {
+            abort(403);
+        }
+
         return response()->json(
             $transaction->load('category')
         );
@@ -47,12 +55,16 @@ class TransactionController extends Controller
 
     public function update(Request $request, Transaction $transaction)
     {
+        if ($transaction->user_id !== $request->user()->id) {
+            abort(403);
+        }
+
         $validated = $request->validate([
-        'category_id' => 'required|exists:categories,id',
-        'type' => 'required|in:income,expense',
-        'title' => 'required|string|max:255',
-        'amount' => 'required|numeric|min:0.01',
-        'transaction_date' => 'required|date',
+            'category_id' => 'required|exists:categories,id',
+            'type' => 'required|in:income,expense',
+            'title' => 'required|string|max:255',
+            'amount' => 'required|numeric|min:0.01',
+            'transaction_date' => 'required|date',
         ]);
 
         $transaction->update($validated);
@@ -60,8 +72,12 @@ class TransactionController extends Controller
         return response()->json($transaction);
     }
 
-    public function destroy(Transaction $transaction)
+    public function destroy(Request $request, Transaction $transaction)
     {
+        if ($transaction->user_id !== $request->user()->id) {
+            abort(403);
+        }
+
         $transaction->delete();
 
         return response()->json([

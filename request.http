@@ -141,3 +141,18 @@ Content-Type: application/json
   "priority": "high",
   "emoji": "🇯🇵"
 }
+
+###
+GET http://127.0.0.1:8000/api/transactions
+Authorization: Bearer 2|YmIYTMfKYfE0G6H9tbsXP8WLvmzEafbiWEzDobIEd6cf0bdf
+Accept: application/json
+
+###
+GET http://127.0.0.1:8000/api/saving-goals
+Authorization: Bearer 2|YmIYTMfKYfE0G6H9tbsXP8WLvmzEafbiWEzDobIEd6cf0bdf
+Accept: application/json
+
+###
+GET http://127.0.0.1:8000/api/dashboard
+Authorization: Bearer 2|YmIYTMfKYfE0G6H9tbsXP8WLvmzEafbiWEzDobIEd6cf0bdf
+Accept: application/json

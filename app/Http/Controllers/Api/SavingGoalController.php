@@ -9,17 +9,23 @@ use App\Models\Achievement;
 
 class SavingGoalController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         return response()->json(
-            SavingGoal::all()
+            $request->user()
+                ->savingGoals()
+                ->get()
         );
     }
 
-    public function show(SavingGoal $savingGoal)
-    {
-        return response()->json($savingGoal);
+    public function show(Request $request, SavingGoal $savingGoal)
+{
+    if ($savingGoal->user_id !== $request->user()->id) {
+        abort(403);
     }
+
+    return response()->json($savingGoal);
+}
 
     public function store(Request $request)
     {
@@ -51,6 +57,10 @@ class SavingGoalController extends Controller
 
     public function update(Request $request, SavingGoal $savingGoal)
     {
+        if ($savingGoal->user_id !== $request->user()->id) {
+            abort(403);
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -66,8 +76,12 @@ class SavingGoalController extends Controller
         return response()->json($savingGoal);
     }
 
-    public function destroy(SavingGoal $savingGoal)
+    public function destroy(Request $request, SavingGoal $savingGoal)
     {
+        if ($savingGoal->user_id !== $request->user()->id) {
+            abort(403);
+        }
+
         $savingGoal->delete();
 
         return response()->json([

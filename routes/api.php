@@ -7,28 +7,34 @@ use App\Http\Controllers\Api\SavingGoalController;
 use App\Http\Controllers\Api\CoachPreferenceController;
 use App\Http\Controllers\Api\AchievementController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\DashboardController;
 
 
 ### Categories ###
 Route::get('/categories', [CategoryController::class, 'index']);
 
-### Transactions ###
-Route::get('/transactions', [TransactionController::class, 'index']);
+### Middleware ###
 Route::middleware('auth:sanctum')->group(function () { 
+    // Auth
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/user', [AuthController::class, 'me']);
+
+    // Transactions
+    Route::get('/transactions', [TransactionController::class, 'index']);
     Route::post('/transactions', [TransactionController::class, 'store']);
     Route::get('/transactions/{transaction}', [TransactionController::class, 'show']);
-Route::put('/transactions/{transaction}', [TransactionController::class, 'update']);
-Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy']);
+    Route::put('/transactions/{transaction}', [TransactionController::class, 'update']);
+    Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy']);
 
-Route::post('/saving-goals', [SavingGoalController::class, 'store']);
-Route::put('/saving-goals/{savingGoal}', [SavingGoalController::class, 'update']);
-Route::delete('/saving-goals/{savingGoal}', [SavingGoalController::class, 'destroy']);
+    // Saving Goals
+    Route::get('/saving-goals', [SavingGoalController::class, 'index']);
+    Route::post('/saving-goals', [SavingGoalController::class, 'store']);
+    Route::get('/saving-goals/{savingGoal}', [SavingGoalController::class, 'show']);
+    Route::put('/saving-goals/{savingGoal}', [SavingGoalController::class, 'update']);
+    Route::delete('/saving-goals/{savingGoal}', [SavingGoalController::class, 'destroy']);
+
+    Route::get('/dashboard', [DashboardController::class, 'index']);
 });
-
-
-### Saving Goals ###
-Route::get('/saving-goals', [SavingGoalController::class, 'index']);
-Route::get('/saving-goals/{savingGoal}', [SavingGoalController::class, 'show']);
 
 ### Coach Preferences ###
 
@@ -42,9 +48,3 @@ Route::get('/users/{user}/achievements', [AchievementController::class, 'userAch
 ### Auth ###
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-Route::middleware('auth:sanctum')->group(function () {
-
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/user', [AuthController::class, 'me']);
-
-});
