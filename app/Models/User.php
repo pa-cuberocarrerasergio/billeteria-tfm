@@ -69,4 +69,8 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Achievement::class);
     }
+    public function coachMessages()
+    {
+        return $this->hasMany(CoachMessage::class);
+    }
 }

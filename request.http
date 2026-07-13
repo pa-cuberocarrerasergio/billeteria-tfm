@@ -156,3 +156,54 @@ Accept: application/json
 GET http://127.0.0.1:8000/api/dashboard
 Authorization: Bearer 2|YmIYTMfKYfE0G6H9tbsXP8WLvmzEafbiWEzDobIEd6cf0bdf
 Accept: application/json
+
+###
+GET http://127.0.0.1:8000/api/test-gemini-key
+Accept: application/json
+
+###
+POST http://127.0.0.1:8000/api/coach/chat
+Authorization: Bearer 2|YmIYTMfKYfE0G6H9tbsXP8WLvmzEafbiWEzDobIEd6cf0bdf
+Accept: application/json
+Content-Type: application/json
+
+{
+  "message": "Quiero ahorrar para comprar una vivienda"
+}
+
+###
+POST http://127.0.0.1:8000/api/coach/chat
+Authorization: Bearer 2|YmIYTMfKYfE0G6H9tbsXP8WLvmzEafbiWEzDobIEd6cf0bdf
+Accept: application/json
+Content-Type: application/json
+
+{
+  "message": "Hola"
+}
+
+###
+POST http://127.0.0.1:8000/api/coach/chat
+Authorization: Bearer 2|YmIYTMfKYfE0G6H9tbsXP8WLvmzEafbiWEzDobIEd6cf0bdf
+Accept: application/json
+
+###
+POST http://127.0.0.1:8000/api/coach/chat
+Authorization: Bearer 2|YmIYTMfKYfE0G6H9tbsXP8WLvmzEafbiWEzDobIEd6cf0bdf
+Accept: application/json
+Content-Type: application/json
+
+{
+  "message": "Hola, quiero ahorrar para comprar una vivienda"
+}
+
+###
+POST http://127.0.0.1:8000/api/coach/chat
+Authorization: Bearer 2|YmIYTMfKYfE0G6H9tbsXP8WLvmzEafbiWEzDobIEd6cf0bdf
+Accept: application/json
+Content-Type: application/json
+
+{
+  "message": "¿Cómo voy con mis finanzas?"
+}
+
+###

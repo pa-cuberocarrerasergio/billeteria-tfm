@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\CoachPreferenceController;
 use App\Http\Controllers\Api\AchievementController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\CoachController;
 
 
 ### Categories ###
@@ -33,7 +34,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/saving-goals/{savingGoal}', [SavingGoalController::class, 'update']);
     Route::delete('/saving-goals/{savingGoal}', [SavingGoalController::class, 'destroy']);
 
+    // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index']);
+
+    // IA
+    Route::post('/coach/chat', [CoachController::class, 'chat']);
+
+    // Historial IA
+    Route::get('/coach/history', [CoachController::class, 'history']);
 });
 
 ### Coach Preferences ###
@@ -48,3 +56,10 @@ Route::get('/users/{user}/achievements', [AchievementController::class, 'userAch
 ### Auth ###
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+
+### test ai ###
+Route::get('/test-gemini-key', function () {
+    return response()->json([
+        'exists' => !empty(config('services.gemini.api_key'))
+    ]);
+});
