@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\CoachMessage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use App\Models\CoachMessage;
 
 class CoachController extends Controller
 {
@@ -26,7 +26,28 @@ class CoachController extends Controller
 
         $preference = $user->coachPreference;
 
+        $totalIncome = $user->transactions()
+            ->where('type', 'income')
+            ->sum('amount');
+
+        $totalExpense = $user->transactions()
+            ->where('type', 'expense')
+            ->sum('amount');
+
+        $balance = $totalIncome - $totalExpense;
+
+        $transactionsCount = $user->transactions()->count();
+
+        $savingGoalsCount = $user->savingGoals()->count();
+
         $context = "Eres el coach financiero de BilleterIA.\n\n";
+
+        $context .= "Resumen financiero actual:\n";
+        $context .= "- Balance: {$balance}€\n";
+        $context .= "- Ingresos totales: {$totalIncome}€\n";
+        $context .= "- Gastos totales: {$totalExpense}€\n";
+        $context .= "- Transacciones registradas: {$transactionsCount}\n";
+        $context .= "- Objetivos de ahorro: {$savingGoalsCount}\n\n";
 
         if ($preference) {
             $context .= "Estilo de conversación: "
@@ -41,29 +62,57 @@ class CoachController extends Controller
         $context .= "Objetivos de ahorro:\n";
 
         if ($goals->count()) {
+
             foreach ($goals as $goal) {
+
+                $progress = 0;
+
+                if ($goal->target_amount > 0) {
+                    $progress = round(
+                        ($goal->current_amount / $goal->target_amount) * 100,
+                        2
+                    );
+                }
+
                 $context .=
                     "- {$goal->title}\n" .
                     "  Objetivo: {$goal->target_amount}€\n" .
-                    "  Ahorrado: {$goal->current_amount}€\n";
+                    "  Ahorrado: {$goal->current_amount}€\n" .
+                    "  Progreso: {$progress}%\n";
             }
+
         } else {
+
             $context .= "- No tiene objetivos de ahorro registrados.\n";
         }
 
         $context .= "\nÚltimas transacciones:\n";
 
         if ($transactions->count()) {
+
             foreach ($transactions as $transaction) {
+
                 $context .=
                     "- {$transaction->title}: {$transaction->amount}€ ({$transaction->type})\n";
             }
+
         } else {
+
             $context .= "- No tiene transacciones registradas.\n";
         }
 
+        $context .= "
+
+Instrucciones:
+- Actúa como un coach financiero profesional.
+- Da consejos prácticos.
+- Utiliza los datos financieros del usuario.
+- Sé motivador pero realista.
+- Responde siempre en español.
+";
+
         $prompt = $context .
-            "\nPregunta del usuario:\n" .
+            "\n\nPregunta del usuario:\n" .
             $validated['message'];
 
         $apiKey = config('services.gemini.api_key');
@@ -83,10 +132,17 @@ class CoachController extends Controller
             ]
         );
 
-       $reply = $response->json(
+        if (!$response->successful()) {
+
+            return response()->json([
+                'error' => $response->json()
+            ], $response->status());
+        }
+
+        $reply = $response->json(
             'candidates.0.content.parts.0.text'
         );
-        
+
         CoachMessage::create([
             'user_id' => $user->id,
             'message' => $validated['message'],
@@ -104,6 +160,7 @@ class CoachController extends Controller
             $request->user()
                 ->coachMessages()
                 ->latest()
+                ->take(20)
                 ->get()
         );
     }

@@ -207,3 +207,16 @@ Content-Type: application/json
 }
 
 ###
+POST http://127.0.0.1:8000/api/coach/chat
+Authorization: Bearer 2|YmIYTMfKYfE0G6H9tbsXP8WLvmzEafbiWEzDobIEd6cf0bdf
+Accept: application/json
+Content-Type: application/json
+
+{
+  "message": "¿Cómo voy con mi objetivo de Japón?"
+}
+
+###
+GET http://127.0.0.1:8000/api/coach/history
+Authorization: Bearer 2|YmIYTMfKYfE0G6H9tbsXP8WLvmzEafbiWEzDobIEd6cf0bdf
+Accept: application/json
