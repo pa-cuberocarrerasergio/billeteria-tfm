@@ -21,13 +21,26 @@ class DashboardController extends Controller
 
         $balance = $income - $expense;
 
-        $goals = $user->savingGoals()->count();
+        $goalsCount = $user->savingGoals()->count();
+
+        $mainGoal = $user->savingGoals()
+            ->latest()
+            ->first();
+
+        $latestTransactions = $user->transactions()
+            ->latest()
+            ->take(5)
+            ->get();
 
         return response()->json([
-            'balance' => $balance,
-            'income' => $income,
-            'expense' => $expense,
-            'goals' => $goals,
+            'balance' => (float) $balance,
+            'income' => (float) $income,
+            'expense' => (float) $expense,
+            'goals' => $goalsCount,
+
+            'mainGoal' => $mainGoal,
+
+            'latestTransactions' => $latestTransactions,
         ]);
     }
 }
