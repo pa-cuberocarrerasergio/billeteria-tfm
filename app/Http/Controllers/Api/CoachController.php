@@ -50,6 +50,7 @@ class CoachController extends Controller
         $context .= "- Objetivos de ahorro: {$savingGoalsCount}\n\n";
 
         if ($preference) {
+
             $context .= "Estilo de conversación: "
                 . ($preference->conversation_style ?? 'motivador')
                 . "\n";
@@ -103,15 +104,33 @@ class CoachController extends Controller
 
         $context .= "
 
-Instrucciones:
-- Actúa como un coach financiero profesional.
-- Da consejos prácticos.
-- Utiliza los datos financieros del usuario.
-- Sé motivador pero realista.
-- Responde siempre en español.
-";
+            Instrucciones:
 
-        $prompt = $context .
+            - Eres el coach financiero de una aplicación móvil llamada BilleterIA.
+            - Responde SIEMPRE en español.
+            - Responde de forma breve y directa.
+            - Máximo 120 palabras.
+            - No escribas introducciones largas.
+            - No repitas todos los datos financieros.
+            - Utiliza únicamente la información más relevante.
+            - Sé motivador pero realista.
+            - Utiliza emojis para mejorar la lectura.
+
+            Estructura recomendada:
+
+            🎯 Objetivo
+            💰 Situación actual
+            📊 Progreso
+            💡 Consejo
+
+            - Finaliza con una única pregunta corta.
+            - No escribas artículos largos.
+            - No hagas listas extensas.
+            - Habla como un coach conversacional dentro de una app móvil.
+            ";
+
+        $prompt =
+            $context .
             "\n\nPregunta del usuario:\n" .
             $validated['message'];
 
@@ -143,6 +162,10 @@ Instrucciones:
             'candidates.0.content.parts.0.text'
         );
 
+        // Eliminar markdown generado por Gemini
+        $reply = preg_replace('/\*+/', '', $reply);
+        $reply = str_replace('#', '', $reply);
+
         CoachMessage::create([
             'user_id' => $user->id,
             'message' => $validated['message'],
@@ -159,8 +182,7 @@ Instrucciones:
         return response()->json(
             $request->user()
                 ->coachMessages()
-                ->latest()
-                ->take(20)
+                ->oldest()
                 ->get()
         );
     }

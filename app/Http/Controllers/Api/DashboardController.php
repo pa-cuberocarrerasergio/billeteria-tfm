@@ -11,26 +11,23 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
-        $totalIncome = $user->transactions()
+        $income = $user->transactions()
             ->where('type', 'income')
             ->sum('amount');
 
-        $totalExpense = $user->transactions()
+        $expense = $user->transactions()
             ->where('type', 'expense')
             ->sum('amount');
 
-        $balance = $totalIncome - $totalExpense;
+        $balance = $income - $expense;
 
-        $transactionsCount = $user->transactions()->count();
-
-        $savingGoalsCount = $user->savingGoals()->count();
+        $goals = $user->savingGoals()->count();
 
         return response()->json([
-            'total_income' => (float) $totalIncome,
-            'total_expense' => (float) $totalExpense,
-            'balance' => (float) $balance,
-            'transactions_count' => $transactionsCount,
-            'saving_goals_count' => $savingGoalsCount,
+            'balance' => $balance,
+            'income' => $income,
+            'expense' => $expense,
+            'goals' => $goals,
         ]);
     }
 }
