@@ -19,12 +19,19 @@ class CoachController extends Controller
 
         $transactions = $user->transactions()
             ->latest()
-            ->take(10)
+            ->take(3)
             ->get();
 
         $goals = $user->savingGoals()->get();
 
         $preference = $user->coachPreference;
+
+        $history = $user
+            ->coachMessages()
+            ->latest()
+            ->take(5)
+            ->get()
+            ->reverse();
 
         $totalIncome = $user->transactions()
             ->where('type', 'income')
@@ -40,9 +47,10 @@ class CoachController extends Controller
 
         $savingGoalsCount = $user->savingGoals()->count();
 
-        $context = "Eres el coach financiero de BilleterIA.\n\n";
+        $context = "Eres Billetín, el coach financiero de BilleterIA.\n\n";
 
         $context .= "Resumen financiero actual:\n";
+
         $context .= "- Balance: {$balance}€\n";
         $context .= "- Ingresos totales: {$totalIncome}€\n";
         $context .= "- Gastos totales: {$totalExpense}€\n";
@@ -69,6 +77,7 @@ class CoachController extends Controller
                 $progress = 0;
 
                 if ($goal->target_amount > 0) {
+
                     $progress = round(
                         ($goal->current_amount / $goal->target_amount) * 100,
                         2
@@ -102,36 +111,35 @@ class CoachController extends Controller
             $context .= "- No tiene transacciones registradas.\n";
         }
 
+        $context .= "\nHistorial reciente:\n";
+
+        foreach ($history as $item) {
+
+            $context .=
+                "Usuario: {$item->message}\n" .
+                "Billetín: {$item->response}\n";
+        }
+
         $context .= "
 
-            Instrucciones:
+Instrucciones:
 
-            - Eres el coach financiero de una aplicación móvil llamada BilleterIA.
-            - Responde SIEMPRE en español.
-            - Responde de forma breve y directa.
-            - Máximo 120 palabras.
-            - No escribas introducciones largas.
-            - No repitas todos los datos financieros.
-            - Utiliza únicamente la información más relevante.
-            - Sé motivador pero realista.
-            - Utiliza emojis para mejorar la lectura.
-
-            Estructura recomendada:
-
-            🎯 Objetivo
-            💰 Situación actual
-            📊 Progreso
-            💡 Consejo
-
-            - Finaliza con una única pregunta corta.
-            - No escribas artículos largos.
-            - No hagas listas extensas.
-            - Habla como un coach conversacional dentro de una app móvil.
-            ";
+- Eres Billetín, el coach financiero de BilleterIA.
+- Responde SIEMPRE en español.
+- Responde primero a la pregunta concreta del usuario.
+- No sigas una plantilla fija.
+- No repitas siempre el balance, gastos u objetivos.
+- Utiliza los datos financieros solo cuando sean relevantes.
+- Habla de forma natural y conversacional.
+- Sé cercano, útil y motivador.
+- Si el usuario hace una pregunta específica, contéstala directamente.
+- Máximo 120 palabras.
+- Puedes usar emojis cuando aporten valor.
+";
 
         $prompt =
             $context .
-            "\n\nPregunta del usuario:\n" .
+            "\n\nPregunta actual del usuario:\n" .
             $validated['message'];
 
         $apiKey = config('services.gemini.api_key');
@@ -162,7 +170,6 @@ class CoachController extends Controller
             'candidates.0.content.parts.0.text'
         );
 
-        // Eliminar markdown generado por Gemini
         $reply = preg_replace('/\*+/', '', $reply);
         $reply = str_replace('#', '', $reply);
 
