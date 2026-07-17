@@ -10,6 +10,7 @@ class CoachMessage extends Model
         'user_id',
         'message',
         'response',
+        'mood',
     ];
 
     public function user()

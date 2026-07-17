@@ -135,6 +135,33 @@ Instrucciones:
 - Si el usuario hace una pregunta específica, contéstala directamente.
 - Máximo 120 palabras.
 - Puedes usar emojis cuando aporten valor.
+
+IMPORTANTE:
+
+Devuelve SIEMPRE un JSON válido.
+
+Formato:
+
+{
+    \"reply\": \"respuesta para el usuario\",
+    \"mood\": \"normal\"
+}
+
+Estados permitidos:
+
+- normal
+- happy
+- thinking
+- worried
+
+Reglas:
+
+- happy => si el usuario mejora sus finanzas, ahorra o cumple objetivos.
+- worried => si detectas problemas financieros, gastos elevados o balance negativo.
+- thinking => si la respuesta requiere análisis o cálculo.
+- normal => para cualquier otro caso.
+
+NO escribas texto fuera del JSON.
 ";
 
         $prompt =
@@ -145,7 +172,7 @@ Instrucciones:
         $apiKey = config('services.gemini.api_key');
 
         $response = Http::post(
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={$apiKey}",
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key={$apiKey}",
             [
                 'contents' => [
                     [
@@ -166,9 +193,38 @@ Instrucciones:
             ], $response->status());
         }
 
-        $reply = $response->json(
+        $content = $response->json(
             'candidates.0.content.parts.0.text'
         );
+
+        $content = trim($content);
+
+        $content = preg_replace(
+            '/^```json|```$/m',
+            '',
+            $content
+        );
+
+        $decoded = json_decode(
+            $content,
+            true
+        );
+
+        if (
+            json_last_error() === JSON_ERROR_NONE &&
+            isset($decoded['reply'])
+        ) {
+
+            $reply = $decoded['reply'];
+
+            $mood = $decoded['mood'] ?? 'normal';
+
+        } else {
+
+            $reply = $content;
+
+            $mood = 'normal';
+        }
 
         $reply = preg_replace('/\*+/', '', $reply);
         $reply = str_replace('#', '', $reply);
@@ -177,10 +233,12 @@ Instrucciones:
             'user_id' => $user->id,
             'message' => $validated['message'],
             'response' => $reply,
+            'mood' => $mood,
         ]);
 
         return response()->json([
             'reply' => $reply,
+            'mood' => $mood,
         ]);
     }
 
