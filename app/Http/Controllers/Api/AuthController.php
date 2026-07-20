@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Google\Client as GoogleClient;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -38,15 +40,26 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        $user = User::where('email', $validated['email'])->first();
+        $user = User::where(
+            'email',
+            $validated['email']
+        )->first();
 
-        if (!$user || !Hash::check($validated['password'], $user->password)) {
+        if (
+            !$user ||
+            !Hash::check(
+                $validated['password'],
+                $user->password
+            )
+        ) {
             return response()->json([
                 'message' => 'Invalid credentials'
             ], 401);
         }
 
-        $token = $user->createToken('api-token')->plainTextToken;
+        $token = $user
+            ->createToken('api-token')
+            ->plainTextToken;
 
         return response()->json([
             'user' => $user,
@@ -54,9 +67,71 @@ class AuthController extends Controller
         ]);
     }
 
+    public function googleLogin(Request $request)
+    {
+        $request->validate([
+            'access_token' => 'required|string',
+        ]);
+
+        try {
+
+            $client = new GoogleClient();
+
+            $response = file_get_contents(
+                'https://www.googleapis.com/oauth2/v3/userinfo?access_token=' .
+                $request->access_token
+            );
+
+            $googleUser = json_decode($response, true);
+
+            if (!$googleUser || !isset($googleUser['email'])) {
+                return response()->json([
+                    'message' => 'Invalid Google token'
+                ], 401);
+            }
+
+            $user = User::where(
+                'email',
+                $googleUser['email']
+            )->first();
+
+            if (!$user) {
+
+                $user = User::create([
+                    'nickname' => $googleUser['name']
+                        ?? explode('@', $googleUser['email'])[0],
+
+                    'email' => $googleUser['email'],
+
+                    'password' => bcrypt(
+                        Str::random(32)
+                    ),
+                ]);
+            }
+
+            $token = $user
+                ->createToken('api-token')
+                ->plainTextToken;
+
+            return response()->json([
+                'user' => $user,
+                'token' => $token,
+            ]);
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'message' => 'Google authentication failed',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $request
+            ->user()
+            ->currentAccessToken()
+            ->delete();
 
         return response()->json([
             'message' => 'Logged out successfully'
@@ -65,6 +140,8 @@ class AuthController extends Controller
 
     public function me(Request $request)
     {
-        return response()->json($request->user());
+        return response()->json(
+            $request->user()
+        );
     }
 }

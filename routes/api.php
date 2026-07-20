@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\CoachController;
 
 
+
 ### Categories ###
 Route::get('/categories', [CategoryController::class, 'index']);
 
@@ -56,6 +57,7 @@ Route::get('/users/{user}/achievements', [AchievementController::class, 'userAch
 ### Auth ###
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/google-login', [AuthController::class, 'googleLogin']);
 ### Demo IA ###
 Route::post('/demo/coach/chat', [CoachController::class, 'demoChat']);
 
