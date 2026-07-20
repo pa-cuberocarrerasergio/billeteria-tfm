@@ -251,4 +251,113 @@ NO escribas texto fuera del JSON.
                 ->get()
         );
     }
+
+    public function demoChat(Request $request)
+    {
+        $validated = $request->validate([
+            'message' => 'required|string|max:1000',
+        ]);
+
+        $context = "Eres Billetín, el coach financiero de BilleterIA. Esta es una conversación de demostración con un usuario no registrado.\n\n";
+
+        $context .= "Resumen financiero actual (DATOS DE EJEMPLO):\n";
+        $context .= "- Balance: 1250€\n";
+        $context .= "- Ingresos totales: 2500€\n";
+        $context .= "- Gastos totales: 1250€\n";
+        $context .= "- Objetivos de ahorro: 1\n\n";
+
+        $context .= "Objetivos de ahorro:\n";
+        $context .= "- Viaje a Japón\n  Objetivo: 3000€\n  Ahorrado: 1500€\n  Progreso: 50%\n\n";
+
+        $context .= "Últimas transacciones:\n";
+        $context .= "- Nómina: 1800€ (income)\n";
+        $context .= "- Supermercado: 75€ (expense)\n";
+        $context .= "- Netflix: 13€ (expense)\n\n";
+
+        $context .= "
+Instrucciones:
+- Eres Billetín, el coach financiero de BilleterIA.
+- Responde SIEMPRE en español.
+- Responde primero a la pregunta concreta del usuario basándote en los datos de ejemplo.
+- Recuerda que es un usuario en modo DEMO, por lo que puedes animarlo sutilmente a registrarse gratis para conectar sus propios datos reales.
+- Sé cercano, útil y motivador.
+- Máximo 120 palabras.
+- Puedes usar emojis cuando aporten valor.
+
+IMPORTANTE: Devuelve SIEMPRE un JSON válido.
+Formato:
+{
+    \"reply\": \"respuesta para el usuario\",
+    \"mood\": \"normal\"
+}
+Estados permitidos: normal, happy, thinking, worried
+NO escribas texto fuera del JSON.
+";
+
+        $prompt =
+            $context .
+            "\n\nPregunta actual del usuario:\n" .
+            $validated['message'];
+
+        $apiKey = config('services.gemini.api_key');
+
+        $response = Http::post(
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key={$apiKey}",
+            [
+                'contents' => [
+                    [
+                        'parts' => [
+                            [
+                                'text' => $prompt
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        );
+
+        if (!$response->successful()) {
+            return response()->json([
+                'error' => $response->json()
+            ], $response->status());
+        }
+
+        $content = $response->json(
+            'candidates.0.content.parts.0.text'
+        );
+
+        $content = trim($content);
+
+        $content = preg_replace(
+            '/^```json|```$/m',
+            '',
+            $content
+        );
+
+        $decoded = json_decode(
+            $content,
+            true
+        );
+
+        if (
+            json_last_error() === JSON_ERROR_NONE &&
+            isset($decoded['reply'])
+        ) {
+            $reply = $decoded['reply'];
+            $mood = $decoded['mood'] ?? 'normal';
+        } else {
+            $reply = $content;
+            $mood = 'normal';
+        }
+
+        $reply = preg_replace('/\*+/', '', $reply);
+        $reply = str_replace('#', '', $reply);
+
+        // No guardamos el mensaje en CoachMessage porque es demo y no hay usuario autenticado
+
+        return response()->json([
+            'reply' => $reply,
+            'mood' => $mood,
+        ]);
+    }
 }

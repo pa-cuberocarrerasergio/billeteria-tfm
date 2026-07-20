@@ -18,10 +18,10 @@ class TransactionController extends Controller
                 ->get()
         );
     }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
-            
             'category_id' => 'required|exists:categories,id',
             'type' => 'required|in:income,expense',
             'title' => 'required|string|max:255',
@@ -32,13 +32,31 @@ class TransactionController extends Controller
         $user = $request->user();
 
         $transaction = $user->transactions()->create($validated);
+
         $achievement = Achievement::find(1);
+
         if (
             $achievement &&
-            !$transaction->user->achievements()->where('achievement_id', 1)->exists()
+            !$user->achievements()
+                ->where('achievement_id', 1)
+                ->exists()
         ) {
-            $transaction->user->achievements()->attach(1);
+            $user->achievements()->attach(1);
         }
+
+        $transactionsCount = $user
+            ->transactions()
+            ->count();
+
+        if (
+            $transactionsCount >= 10 &&
+            !$user->achievements()
+                ->where('achievement_id', 6)
+                ->exists()
+        ) {
+            $user->achievements()->attach(6);
+        }
+
         return response()->json($transaction, 201);
     }
 

@@ -56,6 +56,8 @@ Route::get('/users/{user}/achievements', [AchievementController::class, 'userAch
 ### Auth ###
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+### Demo IA ###
+Route::post('/demo/coach/chat', [CoachController::class, 'demoChat']);
 
 ### test ai ###
 Route::get('/test-gemini-key', function () {
