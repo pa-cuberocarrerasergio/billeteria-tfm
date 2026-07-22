@@ -9,10 +9,21 @@ use Illuminate\Support\Facades\Http;
 
 class CoachController extends Controller
 {
+    private function styleInstructions(string $style): string
+    {
+        return match ($style) {
+            'formal' => 'Usa un tono formal, profesional y respetuoso. Trata al usuario de "usted".',
+            'motivador' => 'Usa un tono motivador, enérgico y positivo. Anima al usuario a mejorar sus finanzas.',
+            default => 'Usa un tono cercano, amigable y natural, como un amigo de confianza.',
+        };
+    }
+
     public function chat(Request $request)
     {
         $validated = $request->validate([
             'message' => 'required|string|max:1000',
+            'userName' => 'nullable|string|max:255',
+            'userTone' => 'nullable|string|in:formal,cercano,motivador,amigable',
         ]);
 
         $user = $request->user();
@@ -25,6 +36,28 @@ class CoachController extends Controller
         $goals = $user->savingGoals()->get();
 
         $preference = $user->coachPreference;
+
+        $preferredName = $preference?->preferred_name
+            ?? $validated['userName']
+            ?? $user->nickname;
+
+        $conversationStyle = $preference?->conversation_style
+            ?? ($validated['userTone'] === 'amigable' ? 'cercano' : $validated['userTone'])
+            ?? 'cercano';
+
+        if (
+            !$preference &&
+            (!empty($validated['userName']) || !empty($validated['userTone']))
+        ) {
+            $user->coachPreference()->updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'preferred_name' => $validated['userName'] ?? $user->nickname,
+                    'conversation_style' => $conversationStyle,
+                    'coach_background' => 'default',
+                ]
+            );
+        }
 
         $history = $user
             ->coachMessages()
@@ -49,6 +82,10 @@ class CoachController extends Controller
 
         $context = "Eres Billetín, el coach financiero de BilleterIA.\n\n";
 
+        $context .= "Nombre del usuario: {$preferredName}\n";
+        $context .= "Estilo de conversación: {$conversationStyle}\n";
+        $context .= $this->styleInstructions($conversationStyle) . "\n\n";
+
         $context .= "Resumen financiero actual:\n";
 
         $context .= "- Balance: {$balance}€\n";
@@ -58,10 +95,6 @@ class CoachController extends Controller
         $context .= "- Objetivos de ahorro: {$savingGoalsCount}\n\n";
 
         if ($preference) {
-
-            $context .= "Estilo de conversación: "
-                . ($preference->conversation_style ?? 'motivador')
-                . "\n";
 
             $context .= "Contexto personal: "
                 . ($preference->coach_background ?? '')
@@ -131,6 +164,8 @@ Instrucciones:
 - No repitas siempre el balance, gastos u objetivos.
 - Utiliza los datos financieros solo cuando sean relevantes.
 - Habla de forma natural y conversacional.
+- Refiérete al usuario siempre como \"{$preferredName}\".
+- Adapta tu tono al estilo {$conversationStyle}.
 - Sé cercano, útil y motivador.
 - Si el usuario hace una pregunta específica, contéstala directamente.
 - Máximo 120 palabras.
@@ -256,9 +291,19 @@ NO escribas texto fuera del JSON.
     {
         $validated = $request->validate([
             'message' => 'required|string|max:1000',
+            'userName' => 'nullable|string|max:255',
+            'userTone' => 'nullable|string|in:formal,cercano,motivador,amigable',
         ]);
 
+        $preferredName = $validated['userName'] ?? 'amigo';
+        $conversationStyle = $validated['userTone'] === 'amigable'
+            ? 'cercano'
+            : ($validated['userTone'] ?? 'cercano');
+
         $context = "Eres Billetín, el coach financiero de BilleterIA. Esta es una conversación de demostración con un usuario no registrado.\n\n";
+        $context .= "Nombre del usuario: {$preferredName}\n";
+        $context .= "Estilo de conversación: {$conversationStyle}\n";
+        $context .= $this->styleInstructions($conversationStyle) . "\n\n";
 
         $context .= "Resumen financiero actual (DATOS DE EJEMPLO):\n";
         $context .= "- Balance: 1250€\n";

@@ -18,14 +18,19 @@ class CoachPreferenceController extends Controller
 
     public function update(Request $request, User $user)
     {
-       $validated = $request->validate([
+        $validated = $request->validate([
+            'preferred_name' => 'nullable|string|max:255',
             'conversation_style' => 'required|in:formal,cercano,motivador',
-            'coach_background' => 'required|string|max:255',
+            'coach_background' => 'nullable|string|max:255',
         ]);
 
         $preference = CoachPreference::updateOrCreate(
             ['user_id' => $user->id],
-            $validated
+            [
+                'preferred_name' => $validated['preferred_name'] ?? null,
+                'conversation_style' => $validated['conversation_style'],
+                'coach_background' => $validated['coach_background'] ?? 'default',
+            ]
         );
 
         return response()->json($preference);

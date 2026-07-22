@@ -23,9 +23,13 @@ class DashboardController extends Controller
 
     $goalsCount = $user->savingGoals()->count();
 
-    $mainGoal = $user->savingGoals()
+    $savings = $user->savingGoals()->sum('current_amount');
+
+    $topGoals = $user->savingGoals()
+        ->orderByRaw("CASE priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 WHEN 'low' THEN 3 ELSE 4 END")
         ->latest()
-        ->first();
+        ->take(3)
+        ->get();
 
     $latestTransactions = $user->transactions()
         ->latest()
@@ -85,31 +89,21 @@ class DashboardController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    if ($mainGoal) {
-
+    // Recommendations based on the highest priority goal if it exists
+    if ($topGoals->count() > 0) {
+        $primaryGoal = $topGoals->first();
         $progress = 0;
 
-        if ($mainGoal->target_amount > 0) {
-
-            $progress =
-                ($mainGoal->current_amount /
-                    $mainGoal->target_amount) * 100;
+        if ($primaryGoal->target_amount > 0) {
+            $progress = ($primaryGoal->current_amount / $primaryGoal->target_amount) * 100;
         }
 
         if ($progress >= 100) {
-
-            $recommendations[] =
-                "🏆 Has completado tu objetivo '{$mainGoal->title}'.";
-
+            $recommendations[] = "🏆 Has completado tu objetivo '{$primaryGoal->title}'.";
         } elseif ($progress >= 75) {
-
-            $recommendations[] =
-                "🔥 Ya has completado más del 75% de tu objetivo '{$mainGoal->title}'.";
-
+            $recommendations[] = "🔥 Ya has completado más del 75% de tu objetivo '{$primaryGoal->title}'.";
         } elseif ($progress >= 50) {
-
-            $recommendations[] =
-                "🚀 Vas por la mitad de tu objetivo '{$mainGoal->title}'.";
+            $recommendations[] = "🚀 Vas por la mitad de tu objetivo '{$primaryGoal->title}'.";
         }
     }
 
@@ -129,8 +123,9 @@ class DashboardController extends Controller
         'balance' => (float) $balance,
         'income' => (float) $income,
         'expense' => (float) $expense,
+        'savings' => (float) $savings,
         'goals' => $goalsCount,
-        'mainGoal' => $mainGoal,
+        'topGoals' => $topGoals,
         'latestTransactions' => $latestTransactions,
         'recommendations' => $recommendations,
     ]);

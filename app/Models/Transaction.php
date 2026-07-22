@@ -9,10 +9,12 @@ class Transaction extends Model
     protected $fillable = [
         'user_id',
         'category_id',
+        'saving_goal_id',
         'type',
         'title',
         'description',
         'amount',
+        'saving_amount',
         'transaction_date',
     ];
 
@@ -25,5 +27,10 @@ class Transaction extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function savingGoal()
+    {
+        return $this->belongsTo(SavingGoal::class);
     }
 }

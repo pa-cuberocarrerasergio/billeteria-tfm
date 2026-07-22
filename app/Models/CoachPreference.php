@@ -8,6 +8,7 @@ class CoachPreference extends Model
 {
     protected $fillable = [
         'user_id',
+        'preferred_name',
         'conversation_style',
         'coach_background',
     ];
