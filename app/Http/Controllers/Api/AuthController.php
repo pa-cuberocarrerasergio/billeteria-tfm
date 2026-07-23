@@ -106,6 +106,8 @@ class AuthController extends Controller
                     'password' => bcrypt(
                         Str::random(32)
                     ),
+
+                    'avatar' => $googleUser['picture'] ?? null,
                 ]);
             }
 
@@ -143,5 +145,22 @@ class AuthController extends Controller
         return response()->json(
             $request->user()
         );
+    }
+
+    public function uploadAvatar(Request $request)
+    {
+        $request->validate([
+            'avatar' => 'required|image|max:2048',
+        ]);
+
+        $user = $request->user();
+
+        if ($request->hasFile('avatar')) {
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $user->avatar = '/storage/' . $path;
+            $user->save();
+        }
+
+        return response()->json($user);
     }
 }

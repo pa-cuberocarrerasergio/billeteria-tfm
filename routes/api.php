@@ -20,6 +20,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Auth
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'me']);
+    Route::post('/user/avatar', [AuthController::class, 'uploadAvatar']);
 
     // Transactions
     Route::get('/transactions', [TransactionController::class, 'index']);
