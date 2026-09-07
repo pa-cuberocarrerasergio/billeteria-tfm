@@ -25,5 +25,5 @@ RUN composer install --no-dev --optimize-autoloader
 # Exponer el puerto
 EXPOSE 8080
 
-# Limpiar/optimizar caché, ejecutar migraciones e iniciar el servidor en el puerto de Render
-CMD php artisan config:cache && php artisan route:cache && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}
+# Limpiar/optimizar caché, ejecutar migraciones, sembrar datos iniciales e iniciar el servidor en el puerto de Render
+CMD php artisan config:cache && php artisan route:cache && php artisan migrate --force && php artisan db:seed --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}

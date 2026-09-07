@@ -118,5 +118,9 @@ class EvaluatorSeeder extends Seeder
                 'coach_background' => 'Profesor universitario evaluador del TFM',
             ]
         );
+
+        // 5. Asignar logros cumplidos por los datos iniciales
+        // ID 1: Primer gasto, ID 2: Primer ahorro, ID 3: Ahorrador principiante (100€), ID 5: Ahorrador experto (500€)
+        $user->achievements()->syncWithoutDetaching([1, 2, 3, 5]);
     }
 }
