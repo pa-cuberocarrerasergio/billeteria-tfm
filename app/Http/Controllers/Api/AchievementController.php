@@ -10,13 +10,13 @@ class AchievementController extends Controller
 {
     public function index()
     {
-        return Achievement::all();
+        return Achievement::all()->unique('title')->values();
     }
 
     public function userAchievements(User $user)
     {
         $this->checkAndGrantAchievements($user);
-        return $user->achievements()->get();
+        return $user->achievements()->get()->unique('id')->values();
     }
 
     private function checkAndGrantAchievements(User $user): void

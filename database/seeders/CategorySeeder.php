@@ -13,7 +13,7 @@ class CategorySeeder extends Seeder
      */
     public function run(): void
     {
-        Category::insert([
+        $categories = [
             [
                 'name' => 'Alimentación',
                 'type' => 'expense',
@@ -50,6 +50,13 @@ class CategorySeeder extends Seeder
                 'icon' => '📈',
                 'color' => '#009688',
             ],
-        ]);
+        ];
+
+        foreach ($categories as $cat) {
+            Category::updateOrCreate(
+                ['name' => $cat['name']],
+                $cat
+            );
+        }
     }
 }
