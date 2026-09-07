@@ -1,59 +1,155 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# BilleterIA — Backend (API REST)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+> API REST del proyecto BilleterIA. Construida con **Laravel 12** + **Sanctum** + **Google Gemini AI**.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Requisitos Previos
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- PHP 8.2+
+- Composer 2.x
+- PostgreSQL (producción) o SQLite (desarrollo local)
+- API Key de [Google Gemini](https://aistudio.google.com/app/apikey)
+- Credenciales de [Google OAuth 2.0](https://console.cloud.google.com)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## Instalación
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+```bash
+# 1. Instalar dependencias
+composer install
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+# 2. Crear el fichero de entorno
+cp .env.example .env
 
-## Laravel Sponsors
+# 3. Generar clave de aplicación
+php artisan key:generate
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+# 4. Editar .env con tus credenciales (ver abajo)
 
-### Premium Partners
+# 5. Ejecutar migraciones + seeders (incluye usuario evaluador)
+php artisan migrate --seed
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+# 6. Crear enlace para almacenamiento de avatares
+php artisan storage:link
 
-## Contributing
+# 7. Arrancar el servidor
+php artisan serve
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+> API disponible en `http://localhost:8000`
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Variables de Entorno Clave
 
-## Security Vulnerabilities
+```env
+APP_NAME=BilleterIA
+APP_URL=http://localhost:8000
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# SQLite para local (sin configuración adicional):
+DB_CONNECTION=sqlite
 
-## License
+# PostgreSQL para producción:
+# DB_CONNECTION=pgsql
+# DB_HOST=127.0.0.1
+# DB_PORT=5432
+# DB_DATABASE=billeteria
+# DB_USERNAME=postgres
+# DB_PASSWORD=tu_password
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+# Google OAuth
+GOOGLE_CLIENT_ID=tu_client_id
+GOOGLE_CLIENT_SECRET=tu_client_secret
+
+# Google Gemini AI
+GEMINI_API_KEY=tu_api_key
+```
+
+---
+
+## Endpoints de la API
+
+### Autenticación (pública)
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `POST` | `/api/register` | Registro con email + contraseña |
+| `POST` | `/api/login` | Login con email + contraseña |
+| `POST` | `/api/google-login` | Login con Google OAuth |
+
+### Autenticación (privada — Bearer token)
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `POST` | `/api/logout` | Cerrar sesión |
+| `GET` | `/api/user` | Datos del usuario autenticado |
+| `POST` | `/api/user/avatar` | Subir avatar |
+
+### Transacciones (privada)
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `GET` | `/api/transactions` | Listar transacciones |
+| `POST` | `/api/transactions` | Crear transacción |
+| `GET` | `/api/transactions/{id}` | Ver transacción |
+| `PUT` | `/api/transactions/{id}` | Editar transacción |
+| `DELETE` | `/api/transactions/{id}` | Eliminar transacción |
+
+### Objetivos de Ahorro (privada)
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `GET` | `/api/saving-goals` | Listar objetivos |
+| `POST` | `/api/saving-goals` | Crear objetivo |
+| `GET` | `/api/saving-goals/{id}` | Ver objetivo |
+| `PUT` | `/api/saving-goals/{id}` | Editar objetivo |
+| `DELETE` | `/api/saving-goals/{id}` | Eliminar objetivo |
+
+### Dashboard (privada)
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `GET` | `/api/dashboard` | Resumen financiero del usuario |
+
+### Coach IA
+| Método | Ruta | Auth | Descripción |
+|--------|------|------|-------------|
+| `POST` | `/api/coach/chat` | ✅ | Chat con Billetín (datos reales) |
+| `GET` | `/api/coach/history` | ✅ | Historial de conversación |
+| `POST` | `/api/demo/coach/chat` | ❌ | Chat demo (datos de ejemplo) |
+
+### Logros
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `GET` | `/api/achievements` | Todos los logros |
+| `GET` | `/api/users/{id}/achievements` | Logros del usuario |
+
+### Categorías
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `GET` | `/api/categories` | Todas las categorías |
+
+---
+
+## Usuario de Prueba
+
+Creado automáticamente con `php artisan migrate --seed`:
+
+| Campo | Valor |
+|-------|-------|
+| Email | `profesor@billeteria.com` |
+| Contraseña | `evaluador123` |
+
+Para crearlo sin re-migrar: `php artisan db:seed --class=EvaluatorSeeder`
+
+---
+
+## Base de Datos — Modelos Principales
+
+```
+users               → id, nickname, email, password, avatar
+transactions        → id, user_id, category_id, type, title, amount, transaction_date
+saving_goals        → id, user_id, title, target_amount, current_amount, target_date, priority, emoji
+coach_messages      → id, user_id, message, response, mood
+coach_preferences   → id, user_id, preferred_name, conversation_style, coach_background
+achievements        → id, title, description, icon
+achievement_user    → user_id, achievement_id (pivot)
+categories          → id, name, type
+```
