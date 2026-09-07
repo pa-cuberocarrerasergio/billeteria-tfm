@@ -204,76 +204,18 @@ NO escribas texto fuera del JSON.
             "\n\nPregunta actual del usuario:\n" .
             $validated['message'];
 
-        $apiKey = config('services.gemini.api_key');
-
-        $response = Http::post(
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key={$apiKey}",
-            [
-                'contents' => [
-                    [
-                        'parts' => [
-                            [
-                                'text' => $prompt
-                            ]
-                        ]
-                    ]
-                ]
-            ]
-        );
-
-        if (!$response->successful()) {
-
-            return response()->json([
-                'error' => $response->json()
-            ], $response->status());
-        }
-
-        $content = $response->json(
-            'candidates.0.content.parts.0.text'
-        );
-
-        $content = trim($content);
-
-        $content = preg_replace(
-            '/^```json|```$/m',
-            '',
-            $content
-        );
-
-        $decoded = json_decode(
-            $content,
-            true
-        );
-
-        if (
-            json_last_error() === JSON_ERROR_NONE &&
-            isset($decoded['reply'])
-        ) {
-
-            $reply = $decoded['reply'];
-
-            $mood = $decoded['mood'] ?? 'normal';
-
-        } else {
-
-            $reply = $content;
-
-            $mood = 'normal';
-        }
-
-        $reply = preg_replace('/\*+/', '', $reply);
-        $reply = str_replace('#', '', $reply);
+        $result = $this->callGeminiApi($prompt);
 
         CoachMessage::create([
             'user_id' => $user->id,
             'message' => $validated['message'],
-            'response' => $reply,
-            'mood' => $mood,
+            'response' => $result['reply'],
+            'mood' => $result['mood'],
         ]);
 
         return response()->json([
-            'reply' => $reply,
-            'mood' => $mood,
+            'reply' => $result['reply'],
+            'mood' => $result['mood'],
         ]);
     }
 
@@ -344,65 +286,75 @@ NO escribas texto fuera del JSON.
             "\n\nPregunta actual del usuario:\n" .
             $validated['message'];
 
+        $result = $this->callGeminiApi($prompt);
+
+        return response()->json([
+            'reply' => $result['reply'],
+            'mood' => $result['mood'],
+        ]);
+    }
+
+    private function callGeminiApi(string $prompt): array
+    {
         $apiKey = config('services.gemini.api_key');
 
-        $response = Http::post(
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key={$apiKey}",
-            [
-                'contents' => [
+        if (empty($apiKey)) {
+            return [
+                'reply' => 'Hola, soy Billetín. Para activar mis consejos con Inteligencia Artificial en producción, recuerda añadir la clave GEMINI_API_KEY en las variables de entorno de Render.',
+                'mood' => 'thinking',
+            ];
+        }
+
+        $models = ['gemini-1.5-flash', 'gemini-2.0-flash'];
+
+        foreach ($models as $model) {
+            try {
+                $response = Http::timeout(15)->post(
+                    "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}",
                     [
-                        'parts' => [
+                        'contents' => [
                             [
-                                'text' => $prompt
+                                'parts' => [
+                                    ['text' => $prompt]
+                                ]
                             ]
                         ]
                     ]
-                ]
-            ]
-        );
+                );
 
-        if (!$response->successful()) {
-            return response()->json([
-                'error' => $response->json()
-            ], $response->status());
+                if ($response->successful()) {
+                    $content = $response->json('candidates.0.content.parts.0.text');
+
+                    if (!empty($content)) {
+                        $content = trim($content);
+                        $content = preg_replace('/^```json|```$/m', '', $content);
+                        $decoded = json_decode($content, true);
+
+                        if (json_last_error() === JSON_ERROR_NONE && isset($decoded['reply'])) {
+                            $reply = $decoded['reply'];
+                            $mood = $decoded['mood'] ?? 'normal';
+                        } else {
+                            $reply = $content;
+                            $mood = 'normal';
+                        }
+
+                        $reply = preg_replace('/\*+/', '', $reply);
+                        $reply = str_replace('#', '', $reply);
+
+                        return [
+                            'reply' => $reply,
+                            'mood' => in_array($mood, ['normal', 'happy', 'thinking', 'worried']) ? $mood : 'normal',
+                        ];
+                    }
+                }
+            } catch (\Exception $e) {
+                // Continuar al siguiente modelo o fallback
+            }
         }
 
-        $content = $response->json(
-            'candidates.0.content.parts.0.text'
-        );
-
-        $content = trim($content);
-
-        $content = preg_replace(
-            '/^```json|```$/m',
-            '',
-            $content
-        );
-
-        $decoded = json_decode(
-            $content,
-            true
-        );
-
-        if (
-            json_last_error() === JSON_ERROR_NONE &&
-            isset($decoded['reply'])
-        ) {
-            $reply = $decoded['reply'];
-            $mood = $decoded['mood'] ?? 'normal';
-        } else {
-            $reply = $content;
-            $mood = 'normal';
-        }
-
-        $reply = preg_replace('/\*+/', '', $reply);
-        $reply = str_replace('#', '', $reply);
-
-        // No guardamos el mensaje en CoachMessage porque es demo y no hay usuario autenticado
-
-        return response()->json([
-            'reply' => $reply,
-            'mood' => $mood,
-        ]);
+        return [
+            'reply' => '¡Hola! En este momento Billetín está experimentando una breve pausa en el servicio de IA. Vuelve a intentarlo en unos instantes.',
+            'mood' => 'worried',
+        ];
     }
 }
