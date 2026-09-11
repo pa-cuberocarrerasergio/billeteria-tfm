@@ -19,23 +19,38 @@ class CoachController extends Controller
     }
 
     public function chat(Request $request)
-    {
-        $validated = $request->validate([
+{
+    \Log::info('COACH: inicio chat');
+
+    $validated = $request->validate([
             'message' => 'required|string|max:1000',
             'userName' => 'nullable|string|max:255',
             'userTone' => 'nullable|string|in:formal,cercano,motivador,amigable',
         ]);
 
+        \Log::info('COACH: validacion OK');
+
         $user = $request->user();
+
+        \Log::info('COACH: usuario OK', [
+            'user_id' => $user?->id,
+            'email' => $user?->email,
+        ]);
 
         $transactions = $user->transactions()
             ->latest()
             ->take(3)
             ->get();
 
+        \Log::info('COACH: transactions OK');
+
         $goals = $user->savingGoals()->get();
 
+        \Log::info('COACH: goals OK');
+
         $preference = $user->coachPreference;
+
+        \Log::info('COACH: preference OK');
 
         $preferredName = $preference?->preferred_name
             ?? $validated['userName']
@@ -65,6 +80,8 @@ class CoachController extends Controller
             ->take(5)
             ->get()
             ->reverse();
+
+        \Log::info('COACH: history OK');
 
         $totalIncome = $user->transactions()
             ->where('type', 'income')
@@ -204,7 +221,13 @@ NO escribas texto fuera del JSON.
             "\n\nPregunta actual del usuario:\n" .
             $validated['message'];
 
+        \Log::info('COACH: antes de Gemini');
+
         $result = $this->callGeminiApi($prompt);
+
+        \Log::info('COACH: Gemini OK', [
+            'mood' => $result['mood'] ?? null,
+        ]);
 
         CoachMessage::create([
             'user_id' => $user->id,
@@ -212,6 +235,8 @@ NO escribas texto fuera del JSON.
             'response' => $result['reply'],
             'mood' => $result['mood'],
         ]);
+
+        \Log::info('COACH: mensaje guardado OK');
 
         return response()->json([
             'reply' => $result['reply'],
@@ -348,8 +373,13 @@ NO escribas texto fuera del JSON.
                     }
                 }
             } catch (\Exception $e) {
-                // Continuar al siguiente modelo o fallback
-            }
+                \Log::error('GEMINI ERROR', [
+                    'model' => $model,
+                    'message' => $e->getMessage(),
+                ]);
+
+                continue;
+}
         }
 
         return [
