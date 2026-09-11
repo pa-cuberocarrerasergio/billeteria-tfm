@@ -318,7 +318,7 @@ NO escribas texto fuera del JSON.
             ];
         }
 
-        $models = ['gemini-1.5-flash', 'gemini-2.0-flash'];
+        $models = ['gemini-3.7-flash'];
 
         foreach ($models as $model) {
             try {
