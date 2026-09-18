@@ -64,7 +64,38 @@ Route::post('/demo/coach/chat', [CoachController::class, 'demoChat']);
 
 ### test ai ###
 Route::get('/test-gemini-key', function () {
-    return response()->json([
-        'exists' => !empty(config('services.gemini.api_key'))
-    ]);
+    $apiKey = config('services.gemini.api_key');
+    if (empty($apiKey)) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'GEMINI_API_KEY is empty in Render env'
+        ]);
+    }
+
+    try {
+        $response = Illuminate\Support\Facades\Http::timeout(15)->post(
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={$apiKey}",
+            [
+                'contents' => [
+                    [
+                        'parts' => [
+                            ['text' => 'Hola']
+                        ]
+                    ]
+                ]
+            ]
+        );
+
+        return response()->json([
+            'key_exists' => true,
+            'http_status' => $response->status(),
+            'successful' => $response->successful(),
+            'response' => $response->json() ?? $response->body(),
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'key_exists' => true,
+            'exception' => $e->getMessage()
+        ], 500);
+    }
 });
