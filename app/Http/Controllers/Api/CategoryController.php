@@ -9,8 +9,12 @@ class CategoryController extends Controller
 {
     public function index()
     {
-        return response()->json(
-            Category::all()
-        );
+        $categories = Category::all()
+            ->unique(function ($item) {
+                return strtolower(trim($item->name)) . '_' . $item->type;
+            })
+            ->values();
+
+        return response()->json($categories);
     }
 }
