@@ -251,9 +251,8 @@ NO escribas texto fuera del JSON.
         ]);
 
         $preferredName = $validated['userName'] ?? 'amigo';
-        $conversationStyle = $validated['userTone'] === 'amigable'
-            ? 'cercano'
-            : ($validated['userTone'] ?? 'cercano');
+        $userTone = $validated['userTone'] ?? 'cercano';
+        $conversationStyle = $userTone === 'amigable' ? 'cercano' : $userTone;
 
         $context = "Eres Billetín, el coach financiero de BilleterIA. Esta es una conversación de demostración con un usuario no registrado.\n\n";
         $context .= "Nombre del usuario: {$preferredName}\n";
@@ -318,7 +317,7 @@ NO escribas texto fuera del JSON.
             ];
         }
 
-        $models = ['gemini-2.5-flash', 'gemini-3.7-flash', 'gemini-2.5-flash-lite'];
+        $models = ['gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-flash-latest'];
 
         foreach ($models as $model) {
             try {
